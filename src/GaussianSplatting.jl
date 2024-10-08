@@ -25,19 +25,19 @@ using ImageTransformations
 using FileIO
 using Zygote
 
-using NeuralGraphicsGL
-using ModernGL
-using CImGui
-using GLFW
+# using NeuralGraphicsGL
+# using ModernGL
+# using CImGui
+# using GLFW
 
-import CImGui.lib as iglib
+# import CImGui.lib as iglib
 
 import BSON
 import Flux
 import ImageFiltering
 import KernelAbstractions as KA
 import NerfUtils as NU
-import NeuralGraphicsGL as NGL
+# import NeuralGraphicsGL as NGL
 
 const Maybe{T} = Union{T, Nothing}
 
@@ -56,7 +56,7 @@ include("dataset.jl")
 include("gaussians.jl")
 include("rasterization/rasterizer.jl")
 include("training.jl")
-include("gui/gui.jl")
+#include("gui/gui.jl")
 
 # Hacky way to get KA.Backend.
 gpu_backend() = get_backend(Flux.gpu(Array{Int}(undef, 0)))
@@ -102,31 +102,31 @@ function main(dataset_path::String; scale::Int)
     return
 end
 
-function gui(
-    dataset_path::String; scale::Int, fullscreen::Bool = false,
-)
-    width, height, resizable = fullscreen ?
-        (-1, -1, false) :
-        (1024, 1024, true)
-
-    gui = GSGUI(dataset_path, scale; width, height, fullscreen, resizable)
-    gui |> launch!
-    return
-end
-
-function gui(model_path::String, camera::Camera; fullscreen::Bool = false)
-    width, height, resizable = fullscreen ?
-        (-1, -1, false) :
-        (1024, 1024, true)
-
-    gaussians = GaussianModel(gpu_backend())
-    θ = BSON.load(model_path)
-    set_from_bson!(gaussians, θ[:gaussians])
-
-    gui = GSGUI(gaussians, camera; width, height, fullscreen, resizable)
-    gui |> launch!
-    return
-end
+#function gui(
+#    dataset_path::String; scale::Int, fullscreen::Bool = false,
+# )
+#     width, height, resizable = fullscreen ?
+#         (-1, -1, false) :
+#         (1024, 1024, true)
+# 
+#     gui = GSGUI(dataset_path, scale; width, height, fullscreen, resizable)
+#     gui |> launch!
+#     return
+# end
+# 
+# function gui(model_path::String, camera::Camera; fullscreen::Bool = false)
+#     width, height, resizable = fullscreen ?
+#         (-1, -1, false) :
+#         (1024, 1024, true)
+# 
+#     gaussians = GaussianModel(gpu_backend())
+#     θ = BSON.load(model_path)
+#     set_from_bson!(gaussians, θ[:gaussians])
+# 
+#     gui = GSGUI(gaussians, camera; width, height, fullscreen, resizable)
+#     gui |> launch!
+#     return
+# end
 
 function benchmark(dataset_path::String; scale::Int)
     kab = gpu_backend()
