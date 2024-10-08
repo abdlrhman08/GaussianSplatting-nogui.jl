@@ -1,6 +1,37 @@
 # Copyright © 2024 Advanced Micro Devices, Inc. All rights reserved.
 # This software is free for non-commercial, research and evaluation use
 # under the terms of the LICENSE.md file.
+
+## These are directly from the NeuralGraphicsGL library
+function _frustum(left, right, bottom, top, znear, zfar; zsign::Float32 = -1f0)
+    (right == left || bottom == top || znear == zfar) &&
+        return SMatrix{4, 4, Float32, 16}(I)
+
+    rl = 1f0 / (right - left)
+    tb = 1f0 / (top - bottom)
+    zz = 1f0 / (zfar - znear)
+
+    SMatrix{4, 4, Float32, 16}(
+        2f0 * znear * rl, 0f0, 0f0, 0f0,
+        0f0, 2f0 * znear * tb, 0f0, 0f0,
+        (right + left) * rl, (top + bottom) * tb, zsign * (zfar + znear) * zz, zsign,
+        0f0, 0f0, (-2f0 * znear * zfar) * zz, 0f0)
+end
+
+"""
+- `fovx`: In degrees.
+- `fovy`: In degrees.
+"""
+function perspective(fovx, fovy, znear, zfar; zsign::Float32 = -1f0)
+    (znear == zfar) &&
+        error("znear `$znear` must be different from zfar `$zfar`")
+
+    w = tan(0.5f0 * deg2rad(fovx)) * znear
+    h = tan(0.5f0 * deg2rad(fovy)) * znear
+    _frustum(-w, w, -h, h, znear, zfar; zsign)
+end
+
+
 mutable struct Camera
     R::SMatrix{3, 3, Float32, 9}
     t::SVector{3, Float32}
@@ -24,7 +55,7 @@ function Camera(
 )
     znear, zfar = 1f-2, 100f0
     fov_xy = NU.focal2fov.(intrinsics.resolution, intrinsics.focal)
-    projection = NGL.perspective(fov_xy..., znear, zfar; zsign=1f0)
+    projection = perspective(fov_xy..., znear, zfar; zsign=1f0)
 
     w2c, c2w = get_w2c(R, t)
     full_projection = projection * w2c
@@ -118,7 +149,7 @@ end
 function _update_from_intrinsics!(c::Camera)
     znear, zfar = 1f-2, 100f0
     fov_xy = NU.focal2fov.(c.intrinsics.resolution, c.intrinsics.focal)
-    c.projection = NGL.perspective(fov_xy..., znear, zfar; zsign=1f0)
+    c.projection = perspective(fov_xy..., znear, zfar; zsign=1f0)
     c.full_projection = c.projection * c.w2c
     return
 end
